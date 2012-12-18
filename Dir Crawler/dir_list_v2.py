@@ -137,10 +137,11 @@ def inFiles(fullPathFileName = None):
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
     global delFiles
-    for exfile in files:
+    for exfile in files.keys():
         if os.path.exists(exfile):
             return
         else:
+            print '- removed:', exfile
             del files[exfile]
             delFiles += 1
 
@@ -194,7 +195,9 @@ def updateFiles(fullPathFileName = None):
             updated = True
         
         if updated is True:
+            print '- updated:', fullPathFileName
             updFiles += 1
+            
 
 
 
