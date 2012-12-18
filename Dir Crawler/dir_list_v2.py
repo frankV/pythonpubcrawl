@@ -137,8 +137,9 @@ def inFiles(fullPathFileName = None):
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
     global delFiles
-    for exfile in files.keys():
-        if os.path.exists(exfile):
+    for exfile in files.iteritems():
+        print exfile
+        if os.path.exists(files.get(exfile, "empty")):
             return
         else:
             print '- removed:', exfile
