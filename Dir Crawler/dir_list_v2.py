@@ -137,14 +137,13 @@ def inFiles(fullPathFileName = None):
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
     global delFiles
-    for exfile in files.iteritems():
-        print exfile
-        if os.path.exists(files.get(exfile, "empty")):
-            return
-        else:
+    for exfile in files.keys():
+        print '\n', exfile
+        if not os.path.exists(exfile):
             print '- removed:', exfile
             del files[exfile]
             delFiles += 1
+
 
 
 # ---------------------------------------------------------------------------- #
