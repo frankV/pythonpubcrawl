@@ -1,17 +1,18 @@
 from sqlalchemy import *
+from sqlalchemy.ext.declarative import declarative_base  
 
-db = create_engine('mysql+mysqldb://root:root@localhost/file_metadata')
+db_url = 'mysql+mysqldb://root:root@localhost/file_metadata'
+engine = create_engine(db_url)
+Base = declarative_base(engine)
 
-db.echo = False  # Try changing this to True and see what happens
+metadata = Base.metadata
 
-metadata = BoundMetaData(db)
+file_table = Table('file_paths', metadata)
 
 def push_to_db(fullpath, fileInfo):
 # key is fullpath and filename
 # [  0	 ,	    1	  ,	    2	 ,	   3	 ,	 4	 ,	 5	  ,		  6 	 ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
-    
-    file_table = Table('file_paths', metadata, autoload=True)
     
     i = file_table.insert()
     
