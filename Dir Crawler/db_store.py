@@ -1,13 +1,27 @@
 from sqlalchemy import *
+from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
 
 db_url = 'mysql+mysqldb://root:root@localhost/file_metadata'
 engine = create_engine(db_url)
 Base = declarative_base(engine)
 
-metadata = Base.metadata
+meta = Base.metadata
 
-file_table = Table('file_paths', metadata)
+file_paths = Table('file_paths', meta,
+    Column('table_id', Integer, primary_key = True),
+    Column('fullpath', String(255)),
+    Column('filename', String(255)),
+    Column('extension', String(255)),
+    Column('created', String(255)),
+    Column('modified', String(255)),
+    Column('size', Integer),
+    Column('owner', String(255)),
+    Column('permissions', Integer),
+    mysql_engine='InnoDB',
+)
+file_paths.drop(engine, checkfirst = False)
+file_paths.create(engine, checkfirst = True)
 
 def push_to_db(fullpath, fileInfo):
 # key is fullpath and filename
@@ -16,7 +30,7 @@ def push_to_db(fullpath, fileInfo):
     
     print "inserting ", fullpath, fileInfo
     
-    i = file_table.insert()
+    i = file_paths.insert()
     
     i.execute(  fullpath    = str(fullpath), 
                 filename    = str(fileInfo[0]),

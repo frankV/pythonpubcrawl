@@ -127,6 +127,7 @@ def crawlDir():
                 extensions[os.path.splitext(filename)[1].lower()] += 1
 
 
+
 # ---------------------------------------------------------------------------- #
 #   function - inFiles
 #   checks dict for existence of filename with path
