@@ -1,7 +1,13 @@
-import os, time, sys, collections
+import os, time, sys, collections, argparse
 from stat import * # ST_SIZE etc
 import cPickle as pickle
 from db_store import push_to_db
+
+verbose = True
+parser = argparse.ArgumentParser(description='directory crawler')
+parser.add_argument('-v', dest='verbose', action="store_true", default=False, help='verbose')
+args = parser.parse_args()
+
 
 newFiles = 0
 delFiles = 0
@@ -17,8 +23,8 @@ extensions = collections.defaultdict(int)
 # ---------------------------------------------------------------------------- #
 def crawlDir():
   # globals
-  global newFiles, files, extensions
-  
+  global newFiles, files, extensions, verbose
+
   # scratch bool starts a new dictionary each run
   scratch = False
 
@@ -69,7 +75,8 @@ def crawlDir():
                     files[fullPathFileName] = fileInfo
                     dbStore(fullPathFileName, fileInfo)
     
-                    print '+   added...', fullPathFileName
+                    if verbose:
+                        print '+   added...', fullPathFileName
     
                     # new file counter, number of new files added to dict
                     newFiles += 1
@@ -78,7 +85,8 @@ def crawlDir():
                   # file already listed in files dict
                   else:
                     # update file meta data and verify file still exists
-                    print '\n--- file already found ---',
+                    if verbose:
+                        print '\n--- file already found ---',
                     updateFiles(fullPathFileName)
 
 
@@ -111,7 +119,8 @@ def crawlDir():
                 files[fullPathFileName] = fileInfo
                 dbStore(fullPathFileName, fileInfo)
     
-                print '+ new add:', fullPathFileName
+                if verbose:
+                    print '+ new add:', fullPathFileName
     
                 # new file counter, number of new files added to dict "files"
                 newFiles += 1
@@ -137,7 +146,6 @@ def inFiles(fullPathFileName = None):
 def verifyFiles():
     global delFiles
     for exfile in files.keys():
-        print '\n', exfile
         if not os.path.exists(exfile):
             print '- removed:', exfile
             del files[exfile]
@@ -147,8 +155,9 @@ def verifyFiles():
 #   function - dbStore
 #   stores file data to database -- uses imported push_to_db
 # ---------------------------------------------------------------------------- #
-def dbStore(fullpath, filename):
-    push_to_db(fullpath, filename)
+def dbStore(fullpath, fileInfo):
+    print "sending ", fullpath, fileInfo
+    push_to_db(fullpath, fileInfo)
 
 
 # ---------------------------------------------------------------------------- #
