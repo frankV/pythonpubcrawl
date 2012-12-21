@@ -14,14 +14,16 @@ def push_to_db(fullpath, fileInfo):
 # [  0	 ,	    1	  ,	    2	 ,	   3	 ,	 4	 ,	 5	  ,		  6 	 ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
     
+    print "inserting ", fullpath, fileInfo
+    
     i = file_table.insert()
     
-    i.execute(  fullpath    = fullpath, 
-                filename    = fileInfo[0],
-                extension   = fileInfo[1],
-                created     = fileInfo[2],
-                modified    = fileInfo[3],
-                size        = fileInfo[4],
-                owner       = fileInfo[5],
-                permissions = fileInfo[0],
+    i.execute(  fullpath    = str(fullpath), 
+                filename    = str(fileInfo[0]),
+                extension   = str(fileInfo[1]),
+                created     = str(fileInfo[2]),
+                modified    = str(fileInfo[3]),
+                size        = str(fileInfo[4]),
+                owner       = str(fileInfo[5]),
+                permissions = str(fileInfo[0]),
              )
