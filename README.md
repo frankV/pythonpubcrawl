@@ -1,7 +1,7 @@
 Python Pub Crawl
 ==========
 
-An enhanced "Python - Directory Archiver". Crawls a given path (drunkenly) and it's sub-directories, creates a persistent dictionary archive and simultaneously keeps a database up to date with changes. Perfect for file servers with a web-interface. Can link to download scripts (examples coming soon).
+An enhanced "Python - Directory Archiver". "Stumbles" through a given path and it's sub-directories, creates a persistent dictionary archive and simultaneously keeps a database up to date with changes. Perfect for file servers with a web-interface. Can link to download scripts (examples coming soon).
 
 
 Ignore - (these files are unique to you)
