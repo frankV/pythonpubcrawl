@@ -2,7 +2,8 @@ from sqlalchemy import *
 from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
 
-db_url = 'mysql+mysqldb://root:root@localhost/file_metadata'
+# NEED TO UPDATE MYSQL DB!
+db_url = 'mysql+mysqldb://valcarce:devsqlFrank@localhost/pubcrawl'
 engine = create_engine(db_url)
 Base = declarative_base(engine)
 
@@ -25,10 +26,10 @@ file_paths.create(engine, checkfirst = True)
 
 def push_to_db(fullpath, fileInfo):
 # key is fullpath and filename
-# [  0	 ,	    1	  ,	    2	 ,	   3	 ,	 4	 ,	 5	  ,		  6 	 ]
+# [  0	 ,	 1    ,	    2	 ,    3      ,	 4   ,	 5    ,	      6      ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
     
-    print "inserting ", fullpath, fileInfo
+    #print "inserting ", fullpath, fileInfo
     
     i = file_paths.insert()
     
