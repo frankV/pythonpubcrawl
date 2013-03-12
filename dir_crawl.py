@@ -1,3 +1,11 @@
+################################################################################
+#
+#     The Python Pub Crawler
+#            made by: FrankV
+#
+################################################################################
+
+
 import argparse, os, time, sys, collections, getopt
 from stat import *
 import cPickle as pickle
