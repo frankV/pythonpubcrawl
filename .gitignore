@@ -1,5 +1,8 @@
 *.py[cod]
 
+#pickled files
+.p
+
 # C extensions
 *.so
 
