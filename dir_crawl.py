@@ -31,7 +31,7 @@ else: verbose = False
 if args.dump: dump = True
 else: dump = False
 if args.fake: fake = True
-else: fake = True
+else: fake = False
 
 newFiles = 0
 delFiles = 0
