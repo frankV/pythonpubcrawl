@@ -26,12 +26,12 @@ parser.add_argument('directory', help='directory to use', action='store')
 
 args = parser.parse_args()
 
-if args.verbose:
-    verbose = True
-if args.dump:
-    dump = True
-if args.fake:
-    fake = True
+if args.verbose: verbose = True
+else: verbose = False
+if args.dump: dump = True
+else: dump = False
+if args.fake: fake = True
+else: fake = True
 
 newFiles = 0
 delFiles = 0
@@ -52,22 +52,23 @@ def crawlDir():
   # list of file types to ignore
   ignore = [ '.DS_Store' ]
 
-  # directory to crawl
-  print 'you want to crawl ' + args.directory + ' ?'
-  directory = args.directory
-  #directory = '/r/coaps/ftp/samos_pub/data/quick/'
+  # directory to crawl = directory passed in by command line
+  directory = args.directory 
 
+  # dictionary selection
+  #  - if dump flag; replace existing dictionaries
+  #  - if pickle's found, use; else start new dictionaries
   if not dump:
       if pickleTry():
           pickleLoad()
-          print 'Using existing dictionary...\n'
+          if verbose: print 'Using existing dictionary...\n'
       else:
-          print 'Starting new dictionary...'
-  
-  elif dump:
-      print 'replacing existing dictionaries'
+          if verbose: print 'Starting new dictionary...'
+  else:
+      if pickleTry():
+          if verbose: print 'Replacing existing dictionaries.' 
 
-  prompt = raw_input('Press any key. ')
+  prompt = raw_input('Continue? (q = quit) ')
   if prompt == 'q':
     sys.exit()
 
@@ -101,7 +102,7 @@ def crawlDir():
     
                         fileInfo = [filename, ext, created, modified, size, owner, permissions]
                         files[fullPathFileName] = fileInfo
-                        dbStore(fullPathFileName, fileInfo)
+                        if not fake: dbStore(fullPathFileName, fileInfo)
     
                     if verbose: print '+   added...', fullPathFileName
     
@@ -143,7 +144,7 @@ def crawlDir():
 
                     fileInfo = [filename, ext, created, modified, size, owner, permissions]
                     files[fullPathFileName] = fileInfo
-                    dbStore(fullPathFileName, fileInfo)
+                    if not fake: dbStore(fullPathFileName, fileInfo)
     
                 if verbose: print '+ new add:', fullPathFileName
     
@@ -170,10 +171,10 @@ def inFiles(fullPathFileName = None):
 #   checks dict for existence of filename with path
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
-    global delFiles
+    global delFiles, vebose
     for exfile in files.keys():
         if not os.path.exists(exfile):
-            print '- removed:', exfile
+            if verbose: print '- removed:', exfile
             del files[exfile]
             delFiles += 1
 
@@ -182,8 +183,9 @@ def verifyFiles():
 #   stores file data to database -- uses imported push_to_db
 # ---------------------------------------------------------------------------- #
 def dbStore(fullpath, fileInfo):
-    #print "sending ", fullpath, fileInfo
-    push_to_db(fullpath, fileInfo)
+    #global fake
+    #if not fake:
+        push_to_db(fullpath, fileInfo)
 
 
 # ---------------------------------------------------------------------------- #
@@ -247,10 +249,11 @@ def updateFiles(fullPathFileName = None):
 #   saves "files" and "extensions" dict to a file
 # ---------------------------------------------------------------------------- #
 def pickleDump():
-  global files, extensions
-  print 'pickling...'
-  pickle.dump( files, open( "filesdict.p", "wb" ) )
-  pickle.dump( extensions, open( "extensionsdict.p", "wb" ) )
+  global files, extensions, verbose, fake
+  if not fake:
+      if verbose: print 'pickling...'
+      pickle.dump( files, open( "filesdict.p", "wb" ) )
+      pickle.dump( extensions, open( "extensionsdict.p", "wb" ) )
 
 
 # ---------------------------------------------------------------------------- #
@@ -258,15 +261,15 @@ def pickleDump():
 #   loads "files" and "extensions" dict from a file
 # ---------------------------------------------------------------------------- #
 def pickleLoad():
-  global files, extensions
+  global files, extensions, verbose
   cwd = os.getcwd()
 
   fileDictPickle = str(cwd) + '/filesdict.p'
   extDictPickle = str(cwd) + '/extensionsdict.p'
 
-  print 'Loading files...'
+  if verbose: print 'Loading files...'
   files = pickle.load( open( fileDictPickle, "rb" ) )
-  print 'Loading extensions...'
+  if verbose: print 'Loading extensions...'
   extensions = pickle.load( open( extDictPickle, "rb" ) )
 
 
@@ -275,12 +278,13 @@ def pickleLoad():
 #   checks if pickled files already exist
 # ---------------------------------------------------------------------------- #
 def pickleTry():
+  global verbose
   cwd = os.getcwd()
 
   try:
     with open(cwd+'/filesdict.p') as f:
         pass
-        print 'pickle found'
+        if verbose: print 'pickle found'
         return True
   except IOError as e:
     print 'pickle not found'
@@ -291,6 +295,7 @@ def pickleTry():
 #   prints list of extensions along with number of files of that type
 # ---------------------------------------------------------------------------- #
 def printExtensions():
+  global verbose
   for key,value in extensions.items():
       if verbose: print 'Extension: ', key, ' ', value, 'items'
 
@@ -323,12 +328,14 @@ def print_dictTotal(D):
 
 
 crawlDir()
-verifyFiles()
-print '\n'
-print 'Added:  ', newFiles, 'new files to list.\n'
-print 'Removed:', delFiles, 'files from list.\n'
-print 'Updated:', updFiles, 'of', print_dictTotal(files), 'files in list.\n'
-print 'Total:  ', print_dictTotal(files), 'entries in list.\n'
-#print print_fileNames()
+if not fake: verifyFiles()
+
+if verbose:
+    print '\n'
+    print 'Added:  ', newFiles, 'new files to list.\n'
+    print 'Removed:', delFiles, 'files from list.\n'
+    print 'Updated:', updFiles, 'of', print_dictTotal(files), 'files in list.\n'
+    print 'Total:  ', print_dictTotal(files), 'entries in list.\n'
+
 pickleDump()
 
