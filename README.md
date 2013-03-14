@@ -6,8 +6,9 @@ An enhanced *Python - Directory Archiver*. "Stumbles" through a given path and i
 
 ###Usage
 ------------
+Help and Command Summary
 <pre>
-(env)-bash-3.2$ python dir_crawl.py -h
+$ python dir_crawl.py -h
 usage: dir_crawl.py [-h] [-v] [-d] [-f] directory
 
 py pub crawler, stumbles through a given directory and stores metadata for every file it finds.
@@ -20,6 +21,45 @@ optional arguments:
   -v, --verbose  verbose output from crawler
   -d, --dump     dumps and replaces existing dictionaries
   -f, --fake     crawl only, nothing stored to DB
+</pre>
+
+Crawl - verbose and dump(create new archives)
+<pre>
+$ python dir_crawl.py /directory/where/crawl/will/start/ -v -d
+pickle found
+Replacing existing dictionaries.
+Continue? (q = quit)
+
+Searching... /directory/where/crawl/will/start/
++ new add: /directory/where/crawl/will/start/file1.ex
++ new add: /directory/where/crawl/will/start/file2.ex
++ new add: /directory/where/crawl/will/start/file3.ex
+
+Added:   3 new files to list.
+Removed: 0 files from list.
+Updated: 0 of 3 files in list.
+Total:   3 entries in list.
+</pre>
+
+Crawl - verbose (existing archives)
+<pre>
+$ python dir_crawl.py /directory/where/crawl/will/start/ -v
+pickle found
+Loading files...
+Loading extensions...
+Using existing dictionary...
+
+Continue? (q = quit)
+
+Searching... /directory/where/crawl/will/start/
+--- file already found ---
+--- file already found ---
+--- file already found ---
+
+Added:   0 new files to list.
+Removed: 0 files from list.
+Updated: 0 of 3 files in list.
+Total:   3 entries in list.
 </pre>
 
 ###Dependencies
