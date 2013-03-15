@@ -1,3 +1,10 @@
+# pickler.py
+# Created by frankV
+# this file is part of PythonPubCrawler 
+# https://github.com/frankV/pythonpubcrawl
+
+""" pickler.py -- archive serializer  """
+
 import os, collections
 import cPickle as pickle
 

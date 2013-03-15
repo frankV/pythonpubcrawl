@@ -1,16 +1,15 @@
-################################################################################
-#
-#     The Python Pub Crawler
-#            made by: FrankV
-#
-################################################################################
+# pubcrawl.py
+# Created by frankV
+# this file is part of PythonPubCrawler 
+# https://github.com/frankV/pythonpubcrawl
 
+""" pubcrawl.py -- main  """
 
 import argparse, os, time, sys, collections, getopt
 from stat import *
 import cPickle as pickle
 from db_store import push_to_db
-
+import yaml
 
 parser = argparse.ArgumentParser(description='py pub crawler, stumbles through a given directory and stores metadata for every file it finds.', fromfile_prefix_chars="@" )
 parser.add_argument('-v', '--verbose', 
@@ -23,6 +22,7 @@ parser.add_argument('-f', '--fake',
       help='crawl only, nothing stored to DB', 
       action="store_true")
 parser.add_argument('directory', help='directory to use', action='store')
+parser.add_argument('config/settings.yaml', help='settings file location', action='store')
 
 args = parser.parse_args()
 

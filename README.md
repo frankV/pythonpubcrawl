@@ -8,8 +8,8 @@ An enhanced *Python - Directory Archiver*. "Stumbles" through a given path and i
 ------------
 Help and Command Summary
 <pre>
-$ python dir_crawl.py -h
-usage: dir_crawl.py [-h] [-v] [-d] [-f] directory
+$ python pubcrawl.py -h
+usage: pubcrawl.py [-h] [-v] [-d] [-f] directory
 
 py pub crawler, stumbles through a given directory and stores metadata for every file it finds.
 
@@ -25,7 +25,7 @@ optional arguments:
 
 Crawl - verbose and dump(create new archives)
 <pre>
-$ python dir_crawl.py /directory/where/crawl/will/start/ -v -d
+$ python pubcrawl.py /directory/where/crawl/will/start/ -v -d
 pickle found
 Replacing existing dictionaries.
 Continue? (q = quit)
@@ -43,7 +43,7 @@ Total:   3 entries in list.
 
 Crawl - verbose (existing archives)
 <pre>
-$ python dir_crawl.py /directory/where/crawl/will/start/ -v
+$ python pubcrawl.py /directory/where/crawl/will/start/ -v
 pickle found
 Loading files...
 Loading extensions...
