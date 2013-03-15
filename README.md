@@ -14,7 +14,8 @@ usage: pubcrawl.py [-h] [-v] [-d] [-f] directory
 py pub crawler, stumbles through a given directory and stores metadata for every file it finds.
 
 positional arguments:
-  directory      directory to start crawl
+  directory             directory to start crawl
+  config/settings.yaml  settings file location (optional)
 
 optional arguments:
   -h, --help     show this help message and exit
@@ -66,3 +67,4 @@ Total:   3 entries in list.
 ------------
 + [SQLAlchemy](http://www.sqlalchemy.org, 'sqlachemy')  - Object relational mapping. Interface for database.
 + [MySQL-python](http://sourceforge.net/projects/mysql-python/, 'mysql-python') - Best to install from pip
++ [PyYAML](http://pyyaml.org, 'pyyaml') - a YAML parser and emitter for the Python programming language.
