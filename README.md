@@ -9,13 +9,13 @@ An enhanced *Python - Directory Archiver*. "Stumbles" through a given path and i
 Help and Command Summary
 <pre>
 $ python pubcrawl.py -h
-usage: pubcrawl.py [-h] [-v] [-d] [-f] directory config/settings.yaml
+usage: pubcrawl.py [-h] [-v] [-d] [-f] directory
 
 py pub crawler, stumbles through a given directory and stores metadata for every file it finds.
 
 positional arguments:
   directory             directory to start crawl
-  config/settings.yaml  settings file location
+  config/settings.yaml  settings file location (optional)
 
 optional arguments:
   -h, --help     show this help message and exit
@@ -26,7 +26,7 @@ optional arguments:
 
 Crawl - verbose and dump(create new archives)
 <pre>
-$ python pubcrawl.py /directory/where/crawl/will/start/ config/settings.yaml -v -d
+$ python pubcrawl.py /directory/where/crawl/will/start/ -v -d
 pickle found
 Replacing existing dictionaries.
 Continue? (q = quit)
@@ -44,7 +44,7 @@ Total:   3 entries in list.
 
 Crawl - verbose (existing archives)
 <pre>
-$ python pubcrawl.py /directory/where/crawl/will/start/ config/settings.yaml -v
+$ python pubcrawl.py /directory/where/crawl/will/start/ -v
 pickle found
 Loading files...
 Loading extensions...
