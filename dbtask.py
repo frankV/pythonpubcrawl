@@ -1,3 +1,10 @@
+# dbtask.py
+# Created by frankV
+# this file is part of PythonPubCrawler 
+# https://github.com/frankV/pythonpubcrawl
+
+""" dbtask.py -- database interface  """
+
 from sqlalchemy import *
 from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
