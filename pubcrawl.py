@@ -8,10 +8,29 @@
 import argparse, os, time, sys, collections, getopt
 from stat import *
 import cPickle as pickle
-from db_store import push_to_db
+from dbtask import *
 import yaml
 
-parser = argparse.ArgumentParser(description='py pub crawler, stumbles through a given directory and stores metadata for every file it finds.', fromfile_prefix_chars="@" )
+""" argparse options
+
+usage: pubcrawl.py [-h] [-v] [-d] [-f] directory [settings]
+
+py pub crawler, stumbles through a given directory and stores metadata for
+every file it finds.
+
+positional arguments:
+    directory      directory to use
+    settings       settings.yaml file location (optional)
+
+optional arguments:
+    -h, --help     show this help message and exit
+    -v, --verbose  verbose output from crawler
+    -d, --dump     dumps and replaces existing dictionaries
+    -f, --fake     crawl only, nothing stored to DB
+
+"""
+parser = argparse.ArgumentParser(
+        description='py pub crawler, stumbles through a given directory and stores metadata for every file it finds.', fromfile_prefix_chars="@" )
 parser.add_argument('-v', '--verbose', 
       help='verbose output from crawler', 
       action="store_true")
@@ -19,26 +38,39 @@ parser.add_argument('-d', '--dump',
       help='dumps and replaces existing dictionaries', 
       action="store_true")
 parser.add_argument('-f', '--fake', 
-      help='crawl only, nothing stored to DB', 
+      help='crawl only, nothing stored to DB',
       action="store_true")
 parser.add_argument('directory', help='directory to use', action='store')
-parser.add_argument('config/settings.yaml', help='settings file location', action='store')
+parser.add_argument('settings', nargs='?', 
+      help='settings.yaml file location (optional)', action='store')
 
-args = parser.parse_args()
+args = parser.parse_args()          # parse arguments
 
-if args.verbose: verbose = True
-else: verbose = False
-if args.dump: dump = True
-else: dump = False
-if args.fake: fake = True
-else: fake = False
+if args.verbose: verbose = True     # verbose output; crawler prints out process
+else: verbose = False               # verification messages and user feedback
+if args.dump: dump = True           # dump; will override any existing
+else: dump = False                  # dictionaries and drop existing tables
+if args.fake: fake = True           # fake; crawl only, will not update 
+else: fake = False                  # dictionaries and drop existing tables
 
-newFiles = 0
-delFiles = 0
-updFiles = 0
+newFiles = 0                        # GLOBAL "newFiles"; tracks number of new files discovered by crawler
+delFiles = 0                        # GLOBAL "delFiles"; tracks number of files in archive not found by crawler
+updFiles = 0                        # GLOBAL "updFiles"; tracks number of files in archive that are updated
 
-files = {}
+files = {}                          # GLOBAL "files"; main dictionary. GLOBAL "extensions"; stores count of unique ext's
 extensions = collections.defaultdict(int)
+
+
+""" args.settings
+optional argument "settings" defines a .yaml file that can be used to specify 
+certain rules for the crawler to follow in specific directories including 
+creation of database tables
+
+RULES = project_name, project_directory, categories, nomenclature
+"""
+if args.settings:
+   settings_stream = open(args.settings, 'r')
+   yaml_stream = True
 
 # ---------------------------------------------------------------------------- #
 #   function - crawlDir
