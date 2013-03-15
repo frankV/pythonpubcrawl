@@ -67,3 +67,4 @@ Total:   3 entries in list.
 ------------
 + [SQLAlchemy](http://www.sqlalchemy.org, 'sqlachemy')  - Object relational mapping. Interface for database.
 + [MySQL-python](http://sourceforge.net/projects/mysql-python/, 'mysql-python') - Best to install from pip
++ [PyYAML](http://pyyaml.org, 'pyyaml') - a YAML parser and emitter for the Python programming language.
