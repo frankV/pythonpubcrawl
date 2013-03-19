@@ -47,5 +47,5 @@ def push_to_db(fullpath, fileInfo):
                 modified    = str(fileInfo[3]),
                 size        = str(fileInfo[4]),
                 owner       = str(fileInfo[5]),
-                permissions = str(fileInfo[0]),
+                permissions = str(fileInfo[6]),
              )
