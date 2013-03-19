@@ -48,8 +48,10 @@ args = parser.parse_args()          # parse arguments
 
 if args.verbose: verbose = True     # verbose output; crawler prints out process
 else: verbose = False               # verification messages and user feedback
+
 if args.dump: dump = True           # dump; will override any existing
 else: dump = False                  # dictionaries and drop existing tables
+
 if args.fake: fake = True           # fake; crawl only, will not update 
 else: fake = False                  # dictionaries and drop existing tables
 
@@ -64,14 +66,14 @@ extensions = collections.defaultdict(int)
 """ args.settings
 optional argument "settings" defines a .yaml file that can be used to specify 
 certain rules for the crawler to follow in specific directories including 
-creation of database tables
+creation of database tables, column specifications, etc.
 
 RULES = project_name, project_directory, categories, nomenclature
 """
 if args.settings:
    settings_stream = open(args.settings, 'r')
    yaml_stream = True
-
+   if verbose: print 'using yaml file: ' + args.settings
 # ---------------------------------------------------------------------------- #
 #   function - crawlDir
 #   using os.path, crawl directory and all sub-directories, for each file found
@@ -107,82 +109,82 @@ def crawlDir():
   # when the dictionary 'files' already exists
   # for each file, check if file is not already in dict "files"
   # then store file meta data accordingly
-  if files:
-      if verbose: print  'Crawling:', directory, '\n'
-      for dirname, dirnames, filenames in os.walk(directory, topdown=True):
-          
-          if verbose: print '\nsearching... ' + dirname
-          
-          for filename in filenames:
-              if filename not in ignore:
-                  fullPathFileName = os.path.join(dirname, filename)
-                  
-                  if not inFiles(fullPathFileName):
-                    ext = os.path.splitext(filename)[1].lower()
-    
-                    try: # file stat
-                        st = os.stat(fullPathFileName)
-                    except OSError, e:
-                        print "failed to get file info"
-                    else:
-                        # get file size and created date
-                        created = time.ctime(os.path.getctime(fullPathFileName))
-                        modified = time.ctime(os.path.getmtime(fullPathFileName))
-                        size = st[ST_SIZE]
-                        owner = st[ST_UID]
-                        permissions = oct(st[ST_MODE])[-3:]
-    
-                        fileInfo = [filename, ext, created, modified, size, owner, permissions]
-                        files[fullPathFileName] = fileInfo
-                        if not fake: dbStore(fullPathFileName, fileInfo)
-    
-                    if verbose: print '+   added...', fullPathFileName
-    
-                    # new file counter, number of new files added to dict
-                    newFiles += 1
-                    extensions[os.path.splitext(filename)[1].lower()] += 1
-    
-                  # file already listed in files dict
+  #if files:
+  if verbose: print  'Crawling:', directory, '\n'
+  for dirname, dirnames, filenames in os.walk(directory, topdown=True):
+      
+      if verbose: print '\nsearching... ' + dirname
+      
+      for filename in filenames:
+          if filename not in ignore:
+              fullPathFileName = os.path.join(dirname, filename)
+              
+              if not inFiles(fullPathFileName):
+                  ext = os.path.splitext(filename)[1].lower()
+  
+                  try: # file stat
+                      st = os.stat(fullPathFileName)
+                  except OSError, e:
+                      print "failed to get file info"
                   else:
-                    # update file meta data and verify file still exists
-                    if verbose: print '\n--- file already found ---',
-                    updateFiles(fullPathFileName)
+                      # get file size and created date
+                      created = time.ctime(os.path.getctime(fullPathFileName))
+                      modified = time.ctime(os.path.getmtime(fullPathFileName))
+                      size = st[ST_SIZE]
+                      owner = st[ST_UID]
+                      permissions = oct(st[ST_MODE])[-3:]
+  
+                      fileInfo = [filename, ext, created, modified, size, owner, permissions]
+                      files[fullPathFileName] = fileInfo
+                      if not fake: dbStore(fullPathFileName, fileInfo)
+  
+                  if verbose: print '+   added...', fullPathFileName
+  
+                  # new file counter, number of new files added to dict
+                  newFiles += 1
+                  extensions[os.path.splitext(filename)[1].lower()] += 1
+  
+              # file already listed in files dict
+              else:
+                  # update file meta data and verify file still exists
+                  if verbose: print '\n--- file already found ---',
+                  updateFiles(fullPathFileName)
 
 
 
-  # if dictionary 'files' does not exist
-  # for each file, store meta data accordingly
-  else:
-      if verbose: print  'Crawling:', directory, '\n'
-      for dirname, dirnames, filenames in os.walk(directory, topdown=True):
-           if verbose: print '\nsearching... ' + dirname
-           for filename in filenames:
-             if filename not in ignore:
-            
-                fullPathFileName = os.path.join(dirname, filename)
-                ext = os.path.splitext(filename)[1].lower()
-    
-                try: # file stat
-                    st = os.stat(fullPathFileName)
-                except OSError, e:
-                    print "failed to get file info"
-                else:
-                    # get file size and created date
-                    created = time.ctime(os.path.getctime(fullPathFileName))
-                    modified = time.ctime(os.path.getmtime(fullPathFileName))
-                    size = st[ST_SIZE]
-                    owner = st[ST_UID]
-                    permissions = oct(st[ST_MODE])[-3:]
-
-                    fileInfo = [filename, ext, created, modified, size, owner, permissions]
-                    files[fullPathFileName] = fileInfo
-                    if not fake: dbStore(fullPathFileName, fileInfo)
-    
-                if verbose: print '+ new add:', fullPathFileName
-    
-                # new file counter, number of new files added to dict "files"
-                newFiles += 1
-                extensions[os.path.splitext(filename)[1].lower()] += 1
+#  # if dictionary 'files' does not exist
+#  # for each file, store meta data accordingly
+#  else:
+#      if verbose: print  'Crawling:', directory, '\n'
+#      for dirname, dirnames, filenames in os.walk(directory, topdown=True):
+#           if verbose: print '\nsearching... ' + dirname
+#           for filename in filenames:
+#             if filename not in ignore:
+#            
+#                fullPathFileName = os.path.join(dirname, filename)
+#                ext = os.path.splitext(filename)[1].lower()
+#    
+#                try: # file stat
+#                    st = os.stat(fullPathFileName)
+#                except OSError, e:
+#                    print "failed to get file info"
+#                else:
+#                    # get file size and created date
+#                    created = time.ctime(os.path.getctime(fullPathFileName))
+#                    modified = time.ctime(os.path.getmtime(fullPathFileName))
+#                    size = st[ST_SIZE]
+#                    owner = st[ST_UID]
+#                    permissions = oct(st[ST_MODE])[-3:]
+#
+#                    fileInfo = [filename, ext, created, modified, size, owner, permissions]
+#                    files[fullPathFileName] = fileInfo
+#                    if not fake: dbStore(fullPathFileName, fileInfo)
+#    
+#                if verbose: print '+ new add:', fullPathFileName
+#    
+#                # new file counter, number of new files added to dict "files"
+#                newFiles += 1
+#                extensions[os.path.splitext(filename)[1].lower()] += 1
 
 
 
