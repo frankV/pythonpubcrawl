@@ -1,6 +1,6 @@
 # pubcrawl.py
 # Created by frankV
-# this file is part of PythonPubCrawler 
+# PythonPubCrawler 
 # https://github.com/frankV/pythonpubcrawl
 
 """ pubcrawl.py -- main  """
@@ -23,14 +23,15 @@ positional arguments:
     settings       settings.yaml file location (optional)
 
 optional arguments:
-    -h, --help     show this help message and exit
+    -h, --help     displays help menu
     -v, --verbose  verbose output from crawler
     -d, --dump     dumps and replaces existing dictionaries
     -f, --fake     crawl only, nothing stored to DB
 
 """
 parser = argparse.ArgumentParser(
-        description='py pub crawler, stumbles through a given directory and stores metadata for every file it finds.', fromfile_prefix_chars="@" )
+        description='py pub crawler, stumbles through a given directory and \
+        stores metadata for every file it finds.', fromfile_prefix_chars="@" )
 parser.add_argument('-v', '--verbose', 
       help='verbose output from crawler', 
       action="store_true")
@@ -55,16 +56,16 @@ else: dump = False                  # dictionaries and drop existing tables
 if args.fake: fake = True           # fake; crawl only, will not update 
 else: fake = False                  # dictionaries and drop existing tables
 
-newFiles = 0                        # GLOBAL "newFiles"; tracks number of new files discovered by crawler
-delFiles = 0                        # GLOBAL "delFiles"; tracks number of files in archive not found by crawler
-updFiles = 0                        # GLOBAL "updFiles"; tracks number of files in archive that are updated
+newFiles = 0                        # GLOBAL "newFiles"; new files
+delFiles = 0                        # GLOBAL "delFiles"; not found
+updFiles = 0                        # GLOBAL "updFiles"; updated
 
-files = {}                          # GLOBAL "files"; main dictionary. GLOBAL "extensions"; stores count of unique ext's
+files = {}                          # GLOBAL "files"; main dictionary
 extensions = collections.defaultdict(int)
 
 
 """ args.settings
-optional argument "settings" defines a .yaml file that can be used to specify 
+optional argument "settings" defines a yaml file that can be used to specify 
 certain rules for the crawler to follow in specific directories including 
 creation of database tables, column specifications, etc.
 
@@ -72,8 +73,11 @@ RULES = project_name, project_directory, categories, nomenclature
 """
 if args.settings:
    settings_stream = open(args.settings, 'r')
+   settingsMap = yaml.safe_load(settings_stream)
    yaml_stream = True
    if verbose: print 'using yaml file: ' + args.settings
+   print  yaml.load(settings_stream)
+
 # ---------------------------------------------------------------------------- #
 #   function - crawlDir
 #   using os.path, crawl directory and all sub-directories, for each file found
@@ -87,7 +91,7 @@ def crawlDir():
   ignore = [ '.DS_Store' ]
 
   # directory to crawl = directory passed in by command line
-  directory = args.directory 
+  directory = args.directory
 
   # dictionary selection
   #  - if dump flag; replace existing dictionaries
@@ -102,7 +106,31 @@ def crawlDir():
       if pickleTry():
           if verbose: print 'Replacing existing dictionaries.' 
 
-  prompt = raw_input('Continue? (q = quit) ')
+  dirList = []
+  if args.settings:
+      i = 0
+      print 'loaded settings for: '
+      for project in settingsMap:
+        print project + ', ' + settingsMap[project][0]["proj_directory"]
+        dirList.append(settingsMap[project][0]["proj_directory"])
+        for cats in settingsMap[project][1]['categories']:
+            for cat in cats:
+                i+=1
+                print str(i) + ':' + cat,
+      print '\n'
+
+      print 'rules loaded for:'
+      for project in settingsMap:
+        print settingsMap[project][0]["proj_directory"]
+        mainDir = settingsMap[project][0]["proj_directory"]
+
+        for cats in settingsMap[project][1]['categories']:
+            for cat in cats:
+                dirList.append(mainDir + '/' + cat)
+      print dirList
+
+
+  prompt = raw_input('\nContinue? (q = quit) ')
   if prompt == 'q':
     sys.exit()
 
@@ -110,10 +138,14 @@ def crawlDir():
   # for each file, check if file is not already in dict "files"
   # then store file meta data accordingly
   #if files:
-  if verbose: print  'Crawling:', directory, '\n'
+  if verbose: print  'Crawling:', directory
   for dirname, dirnames, filenames in os.walk(directory, topdown=True):
       
       if verbose: print '\nsearching... ' + dirname
+
+      if dirname in dirList:
+        print 'using rules for' + dirname
+        prompt = raw_input('press any key to continue')
       
       for filename in filenames:
           if filename not in ignore:
@@ -149,42 +181,6 @@ def crawlDir():
                   # update file meta data and verify file still exists
                   if verbose: print '\n--- file already found ---',
                   updateFiles(fullPathFileName)
-
-
-
-#  # if dictionary 'files' does not exist
-#  # for each file, store meta data accordingly
-#  else:
-#      if verbose: print  'Crawling:', directory, '\n'
-#      for dirname, dirnames, filenames in os.walk(directory, topdown=True):
-#           if verbose: print '\nsearching... ' + dirname
-#           for filename in filenames:
-#             if filename not in ignore:
-#            
-#                fullPathFileName = os.path.join(dirname, filename)
-#                ext = os.path.splitext(filename)[1].lower()
-#    
-#                try: # file stat
-#                    st = os.stat(fullPathFileName)
-#                except OSError, e:
-#                    print "failed to get file info"
-#                else:
-#                    # get file size and created date
-#                    created = time.ctime(os.path.getctime(fullPathFileName))
-#                    modified = time.ctime(os.path.getmtime(fullPathFileName))
-#                    size = st[ST_SIZE]
-#                    owner = st[ST_UID]
-#                    permissions = oct(st[ST_MODE])[-3:]
-#
-#                    fileInfo = [filename, ext, created, modified, size, owner, permissions]
-#                    files[fullPathFileName] = fileInfo
-#                    if not fake: dbStore(fullPathFileName, fileInfo)
-#    
-#                if verbose: print '+ new add:', fullPathFileName
-#    
-#                # new file counter, number of new files added to dict "files"
-#                newFiles += 1
-#                extensions[os.path.splitext(filename)[1].lower()] += 1
 
 
 
