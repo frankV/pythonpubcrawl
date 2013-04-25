@@ -61,7 +61,7 @@ delFiles = 0                        # GLOBAL "delFiles"; not found
 updFiles = 0                        # GLOBAL "updFiles"; updated
 
 files = {}                          # GLOBAL "files"; main dictionary
-extensions = collections.defaultdict(int)
+# extensions = collections.defaultdict(int)
 
 
 """ args.settings
@@ -69,7 +69,7 @@ optional argument "settings" defines a yaml file that can be used to specify
 certain rules for the crawler to follow in specific directories including 
 creation of database tables, column specifications, etc.
 
-RULES = project_name, project_directory, categories, nomenclature
+RULES = project_name, project_directory(s), categories, nomenclature
 """
 if args.settings:
    settings_stream = open(args.settings, 'r')
@@ -106,6 +106,7 @@ def crawlDir():
       if pickleTry():
           if verbose: print 'Replacing existing dictionaries.' 
 
+  """ this is UGLY! fix this soon!!! """
   dirList = []
   if args.settings:
       i = 0
@@ -128,6 +129,7 @@ def crawlDir():
             for cat in cats:
                 dirList.append(mainDir + '/' + cat)
       print dirList
+  """ seriously ^ that does not a pythonist make! """
 
 
   prompt = raw_input('\nContinue? (q = quit) ')
@@ -137,7 +139,6 @@ def crawlDir():
   # when the dictionary 'files' already exists
   # for each file, check if file is not already in dict "files"
   # then store file meta data accordingly
-  #if files:
   if verbose: print  'Crawling:', directory
   for dirname, dirnames, filenames in os.walk(directory, topdown=True):
       
@@ -174,7 +175,7 @@ def crawlDir():
   
                   # new file counter, number of new files added to dict
                   newFiles += 1
-                  extensions[os.path.splitext(filename)[1].lower()] += 1
+                  # extensions[os.path.splitext(filename)[1].lower()] += 1
   
               # file already listed in files dict
               else:
@@ -283,7 +284,7 @@ def pickleDump():
   if not fake:
       if verbose: print 'pickling...'
       pickle.dump( files, open( "filesdict.p", "wb" ) )
-      pickle.dump( extensions, open( "extensionsdict.p", "wb" ) )
+      # pickle.dump( extensions, open( "extensionsdict.p", "wb" ) )
 
 
 # ---------------------------------------------------------------------------- #
@@ -295,12 +296,12 @@ def pickleLoad():
   cwd = os.getcwd()
 
   fileDictPickle = str(cwd) + '/filesdict.p'
-  extDictPickle = str(cwd) + '/extensionsdict.p'
+  # extDictPickle = str(cwd) + '/extensionsdict.p'
 
   if verbose: print 'Loading files...'
   files = pickle.load( open( fileDictPickle, "rb" ) )
-  if verbose: print 'Loading extensions...'
-  extensions = pickle.load( open( extDictPickle, "rb" ) )
+  # if verbose: print 'Loading extensions...'
+  # extensions = pickle.load( open( extDictPickle, "rb" ) )
 
 
 # ---------------------------------------------------------------------------- #
