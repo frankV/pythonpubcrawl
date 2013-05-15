@@ -5,12 +5,13 @@
 
 """ dbtask.py -- database interface  """
 
+import os
 from sqlalchemy import *
 from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
 
 # NEED TO UPDATE MYSQL DB!
-db_url = 'mysql+mysqldb://valcarce:devsqlFrank@localhost/pubcrawl'
+db_url = os.environ.get('DATABASE_URL')
 engine = create_engine(db_url)
 Base = declarative_base(engine)
 

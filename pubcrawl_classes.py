@@ -10,7 +10,7 @@ import cPickle as pickle
 from dbtask import *
 
 import yaml
-import filemeta
+from filemeta import *
 
 """ argparse options
 
@@ -153,39 +153,20 @@ def crawlDir():
           if filename not in ignore:
 
             fileobject = FileMeta(os.path.join(dirname, filename), filename)
+  
+            # new file counter, number of new files added to dict
+            newFiles += 1
+            # extensions[os.path.splitext(filename)[1].lower()] += 1
+            files[fileobject.fullPathFileName] = fileobject.fileMetaList()
 
-              # fullPathFileName = os.path.join(dirname, filename)
-              
-              if not inFiles(os.path.join(dirname, filename)):
-                  ext = os.path.splitext(filename)[1].lower()
+            if not fake: dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
+            if verbose: print '+   added...', fileobject.fullPathFileName
   
-                  try: # file stat
-                      st = os.stat(fullPathFileName)
-                  except OSError, e:
-                      print "failed to get file info"
-                  else:
-                      # get file size and created date
-                      created = time.ctime(os.path.getctime(fullPathFileName))
-                      modified = time.ctime(os.path.getmtime(fullPathFileName))
-                      size = st[ST_SIZE]
-                      owner = st[ST_UID]
-                      permissions = oct(st[ST_MODE])[-3:]
-  
-                      fileInfo = [filename, ext, created, modified, size, owner, permissions]
-                      files[fullPathFileName] = fileInfo
-                      if not fake: dbStore(fullPathFileName, fileInfo)
-  
-                  if verbose: print '+   added...', fullPathFileName
-  
-                  # new file counter, number of new files added to dict
-                  newFiles += 1
-                  # extensions[os.path.splitext(filename)[1].lower()] += 1
-  
-              # file already listed in files dict
-              else:
-                  # update file meta data and verify file still exists
-                  if verbose: print '\n--- file already found ---',
-                  updateFiles(fullPathFileName)
+          # file already listed in files dict
+          else:
+              # update file meta data and verify file still exists
+              if verbose: print '\n--- file already found ---',
+              updateFiles(fullPathFileName)
 
 
 
