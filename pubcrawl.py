@@ -5,11 +5,10 @@
 
 """ pubcrawl.py -- main  """
 
-import os, argparse, collections, getopt
+import os, argparse, collections, getopt, yaml
 import cPickle as pickle
-from dbtask import *
 
-import yaml
+from dbtask import *
 from filemeta import *
 
 """ argparse options
@@ -48,14 +47,14 @@ parser.add_argument('settings', nargs='?',
 
 args = parser.parse_args()          # parse arguments
 
-if args.verbose: verbose = True     # verbose output; crawler prints out process
-else: verbose = False               # verification messages and user feedback
+if args.verbose: verbose = True     # verbose output
+else: verbose = False
 
 if args.dump: dump = True           # dump; will override any existing
 else: dump = False                  # dictionaries and drop existing tables
 
 if args.fake: fake = True           # fake; crawl only, will not update 
-else: fake = False                  # dictionaries and drop existing tables
+else: fake = False
 
 newFiles = 0                        # GLOBAL "newFiles"; new files
 delFiles = 0                        # GLOBAL "delFiles"; not found
@@ -72,12 +71,21 @@ creation of database tables, column specifications, etc.
 
 RULES = project_name, project_directory(s), categories, nomenclature
 """
-if args.settings:
-   settings_stream = open(args.settings, 'r')
-   settingsMap = yaml.safe_load(settings_stream)
-   yaml_stream = True
-   if verbose: print 'using yaml file: ' + args.settings
-   print  yaml.load(settings_stream)
+
+if args.settings and args.settings[-5:len(args.settings)] == '.yaml':
+  import yamlRx
+  yamlRx.verify(args.settings)
+  settings_stream = open(args.settings, 'r')
+  settingsMap = yaml.safe_load(settings_stream)
+  yaml_stream = True
+  if verbose: print 'using yaml file: ' + args.settings
+  print  yaml.load(settings_stream)
+else:
+  print 'YAML Parse Error: check settings file'
+  prompt = raw_input('If you continue, settings will not be applied.\
+                      \nContinue? (q = quit) ')
+  if prompt == 'q':
+    sys.exit()
 
 # ---------------------------------------------------------------------------- #
 #   function - crawlDir
@@ -89,14 +97,14 @@ def crawlDir():
   global newFiles, files, extensions, verbose, dump, fake
 
   # list of file types to ignore
-  ignore = [ '.DS_Store' ]
+  ignore = [ '.DS_Store', '.pyc' ]
 
   # directory to crawl = directory passed in by command line
   directory = args.directory
 
   # dictionary selection
   #  - if dump flag; replace existing dictionaries
-  #  - if pickle's found, use; else start new dictionaries
+  #  - if pickle found use; else start new dictionaries
   if not dump:
       if pickleTry():
           pickleLoad()
@@ -159,8 +167,10 @@ def crawlDir():
             # extensions[os.path.splitext(filename)[1].lower()] += 1
             files[fileobject.fullPathFileName] = fileobject.fileMetaList()
 
-            if not fake: dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
-            if verbose: print '+   added...', fileobject.fullPathFileName
+            if not fake: 
+              dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
+            if verbose: 
+              print '+   added...', fileobject.fullPathFileName
   
           # file already listed in files dict
           else:
@@ -209,7 +219,7 @@ def dbStore(fullpath, fileInfo):
 #   verify prev collected file meta data and update accordingly
 # ---------------------------------------------------------------------------- #
 
-# [  0	 ,	    1	  ,	    2	 ,	   3	 ,	 4	 ,	 5	  ,		  6 	 ]
+# [  0	 ,	    1	    ,	    2	   ,     3	   ,	 4	 ,	  5	  ,		    6 	   ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
 
 def updateFiles(fullPathFileName = None):
