@@ -1,7 +1,7 @@
 *.py[cod]
 
 #pickled files
-.p
+*.p
 
 # C extensions
 *.so
