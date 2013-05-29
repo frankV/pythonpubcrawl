@@ -1,5 +1,8 @@
 *.py[cod]
 
+# DON'T COMMIT YOUR FREAKING Virtualenv
+env/*
+
 #pickled files
 *.p
 
