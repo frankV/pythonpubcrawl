@@ -5,7 +5,7 @@
 
 """ pubcrawl.py -- main  """
 
-import os, argparse, collections, getopt, yaml
+import os, argparse, collections, yaml, re, fnmatch
 import cPickle as pickle
 
 from dbtask import *
@@ -96,9 +96,6 @@ def crawlDir():
   # globals
   global newFiles, files, extensions, verbose, dump, fake
 
-  # list of file types to ignore
-  ignore = [ '.DS_Store', '.pyc' ]
-
   # directory to crawl = directory passed in by command line
   directory = args.directory
 
@@ -150,35 +147,64 @@ def crawlDir():
   # then store file meta data accordingly
   if verbose: print  'Crawling:', directory
   for dirname, dirnames, filenames in os.walk(directory, topdown=True):
-      
-      if verbose: print '\nsearching... ' + dirname
 
-      if dirname in dirList:
-        print 'using rules for' + dirname
-        prompt = raw_input('press any key to continue')
-      
-      for filename in filenames:
-          if filename not in ignore:
+    if verbose: print '\nsearching... ' + dirname
 
-            fileobject = FileMeta(os.path.join(dirname, filename), filename)
+    if dirname in dirList:
+      print 'using rules for' + dirname
+      prompt = raw_input('press any key to continue')
+    
+    for filename in filenames:
+        if not inFiles(os.path.abspath(os.path.join(dirname, filename))) and \
+        not ignoredFiles(filename) and \
+        not ignoredDirectories(dirname):
+
+          # prompt = raw_input('I\'m about to drop that table like it\'s hot')
+
+          # fullpath = os.path.dirname(os.path.realpath(filename))
+          fileobject = FileMeta(os.path.abspath(os.path.join(dirname, \
+                                filename)), filename)
+
+          newFiles += 1   # number of new files added to dict
+          # extensions[os.path.splitext(filename)[1].lower()] += 1
+          files[fileobject.fullPathFileName] = fileobject.fileMetaList()
+
+          if not fake: 
+            dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
+          if verbose: 
+            print '+   added...', fileobject.fullPathFileName
+
+        # file already listed in files dict
+        elif inFiles(os.path.abspath(os.path.join(dirname, filename))):
+            # update file meta data and verify file still exists
+            if verbose: print '\n--- file already found ---',
+            updateFiles(os.path.abspath(os.path.join(dirname, filename)))
+
+
+# ---------------------------------------------------------------------------- #
+#   function - ignoredFiles
+#   checks if file is in ignore list
+#
+#   function - ignoredDirectories
+#   checks if directory is in ignore list
+# ---------------------------------------------------------------------------- #
+def ignoredFiles(filename = None):
+  ignore = [ '.DS_Store', '*.pyc', '__init__.py', '*.p' ]
   
-            # new file counter, number of new files added to dict
-            newFiles += 1
-            # extensions[os.path.splitext(filename)[1].lower()] += 1
-            files[fileobject.fullPathFileName] = fileobject.fileMetaList()
+  for ignored_file in ignore:
+    if re.search(fnmatch.translate(ignored_file), filename):
+      return True
 
-            if not fake: 
-              dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
-            if verbose: 
-              print '+   added...', fileobject.fullPathFileName
-  
-          # file already listed in files dict
-          else:
-              # update file meta data and verify file still exists
-              if verbose: print '\n--- file already found ---',
-              updateFiles(fullPathFileName)
+  return False
 
+def ignoredDirectories(directory = None):
+  ignore = [ '.git/*', 'env/*' ]
 
+  for ignored_directory in ignore:
+    if re.search(fnmatch.translate(ignored_directory), directory):
+      return True
+
+  return False
 
 # ---------------------------------------------------------------------------- #
 #   function - inFiles
@@ -190,18 +216,16 @@ def inFiles(fullPathFileName = None):
          if fullPathFileName in files: return True
          else: return False
 
-
-
 # ---------------------------------------------------------------------------- #
 #   function - verifyFiles
 #   checks dict for existence of filename with path
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
     global delFiles, vebose
-    for exfile in files.keys():
-        if not os.path.exists(exfile):
+    for existingFile in files.keys():
+        if not os.path.exists(existingFile):
             if verbose: print '- removed:', exfile
-            del files[exfile]
+            del files[existingFile]
             delFiles += 1
 
 # ---------------------------------------------------------------------------- #
@@ -213,7 +237,6 @@ def dbStore(fullpath, fileInfo):
     #if not fake:
         push_to_db(fullpath, fileInfo)
 
-
 # ---------------------------------------------------------------------------- #
 #   function - updateFiles
 #   verify prev collected file meta data and update accordingly
@@ -221,6 +244,13 @@ def dbStore(fullpath, fileInfo):
 
 # [  0	 ,	    1	    ,	    2	   ,     3	   ,	 4	 ,	  5	  ,		    6 	   ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
+
+"""
+there has to be a MORE pythonic way to do this! there is no need to check each
+item in the file list explicitly. use len(fileinfo) and do this more 
+efficiently! that way you can continue to add members to the filemeta class 
+and not have to continue altering this damn function each time
+"""
 
 def updateFiles(fullPathFileName = None):
 	global updFiles
@@ -358,9 +388,9 @@ if not fake: verifyFiles()
 
 if verbose:
     print '\n'
-    print 'Added:  ', newFiles, 'new files to list.\n'
-    print 'Removed:', delFiles, 'files from list.\n'
-    print 'Updated:', updFiles, 'of', print_dictTotal(files), 'files in list.\n'
+    print 'Added:  ', newFiles, 'new file(s) to list.\n'
+    print 'Removed:', delFiles, 'file(s) from list.\n'
+    print 'Updated:', updFiles, 'of', print_dictTotal(files), 'file(s) in list.\n'
     print 'Total:  ', print_dictTotal(files), 'entries in list.\n'
 
 pickleDump()
