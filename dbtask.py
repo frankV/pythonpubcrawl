@@ -10,7 +10,7 @@ from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
 
 # NEED TO UPDATE MYSQL DB!
-db_url = 'mysql+mysqldb://valcarce:devsqlFrank@localhost/pubcrawl'
+db_url = os.environ.get('DATABASE_URL')
 engine = create_engine(db_url)
 Base = declarative_base(engine)
 
@@ -24,11 +24,14 @@ file_paths = Table('file_paths', meta,
     Column('created', String(255)),
     Column('modified', String(255)),
     Column('size', Integer),
-    Column('owner', String(255)),
+    Column('owner', Integer),
     Column('permissions', Integer),
+    Column('md5', Binary),
     mysql_engine='InnoDB',
 )
-file_paths.drop(engine, checkfirst = False)
+file_paths.drop(engine, checkfirst = True)
+
+
 file_paths.create(engine, checkfirst = True)
 
 def push_to_db(fullpath, fileInfo):
@@ -45,7 +48,8 @@ def push_to_db(fullpath, fileInfo):
                 extension   = str(fileInfo[1]),
                 created     = str(fileInfo[2]),
                 modified    = str(fileInfo[3]),
-                size        = str(fileInfo[4]),
-                owner       = str(fileInfo[5]),
-                permissions = str(fileInfo[6]),
+                size        = fileInfo[4],
+                owner       = fileInfo[5],
+                permissions = fileInfo[6],
+                md5         = fileInfo[7]
              )

@@ -3,6 +3,11 @@
 #pickled files
 .p
 
+# DON'T COMMIT YOUR FREAKING Virtualenv
+env/*
+
+perl/*
+
 # C extensions
 *.so
 

@@ -9,6 +9,7 @@ import argparse, os, time, sys, collections, getopt
 from stat import *
 import cPickle as pickle
 from dbtask import *
+from filemeta import *
 import yaml
 
 """ argparse options
@@ -71,12 +72,21 @@ creation of database tables, column specifications, etc.
 
 RULES = project_name, project_directory(s), categories, nomenclature
 """
-if args.settings:
-   settings_stream = open(args.settings, 'r')
-   settingsMap = yaml.safe_load(settings_stream)
-   yaml_stream = True
-   if verbose: print 'using yaml file: ' + args.settings
-   print  yaml.load(settings_stream)
+
+if args.settings and args.settings[-5:len(args.settings)] == '.yaml':
+  import yamlRx
+  yamlRx.verify(args.settings)
+  settings_stream = open(args.settings, 'r')
+  settingsMap = yaml.safe_load(settings_stream)
+  yaml_stream = True
+  if verbose: print 'using yaml file: ' + args.settings
+  print  yaml.load(settings_stream)
+else:
+  print 'YAML Parse Error: check settings file'
+  prompt = raw_input('If you continue, settings will not be applied.\
+                      \nContinue? (q = quit) ')
+  if prompt == 'q':
+    sys.exit()
 
 # ---------------------------------------------------------------------------- #
 #   function - crawlDir
@@ -95,7 +105,7 @@ def crawlDir():
 
   # dictionary selection
   #  - if dump flag; replace existing dictionaries
-  #  - if pickle's found, use; else start new dictionaries
+  #  - if pickle found use; else start new dictionaries
   if not dump:
       if pickleTry():
           pickleLoad()
@@ -141,49 +151,64 @@ def crawlDir():
   # then store file meta data accordingly
   if verbose: print  'Crawling:', directory
   for dirname, dirnames, filenames in os.walk(directory, topdown=True):
-      
-      if verbose: print '\nsearching... ' + dirname
 
-      if dirname in dirList:
-        print 'using rules for' + dirname
-        prompt = raw_input('press any key to continue')
-      
-      for filename in filenames:
-          if filename not in ignore:
-              fullPathFileName = os.path.join(dirname, filename)
-              
-              if not inFiles(fullPathFileName):
-                  ext = os.path.splitext(filename)[1].lower()
-  
-                  try: # file stat
-                      st = os.stat(fullPathFileName)
-                  except OSError, e:
-                      print "failed to get file info"
-                  else:
-                      # get file size and created date
-                      created = time.ctime(os.path.getctime(fullPathFileName))
-                      modified = time.ctime(os.path.getmtime(fullPathFileName))
-                      size = st[ST_SIZE]
-                      owner = st[ST_UID]
-                      permissions = oct(st[ST_MODE])[-3:]
-  
-                      fileInfo = [filename, ext, created, modified, size, owner, permissions]
-                      files[fullPathFileName] = fileInfo
-                      if not fake: dbStore(fullPathFileName, fileInfo)
-  
-                  if verbose: print '+   added...', fullPathFileName
-  
-                  # new file counter, number of new files added to dict
-                  newFiles += 1
-                  # extensions[os.path.splitext(filename)[1].lower()] += 1
-  
-              # file already listed in files dict
-              else:
-                  # update file meta data and verify file still exists
-                  if verbose: print '\n--- file already found ---',
-                  updateFiles(fullPathFileName)
+    if verbose: print '\nsearching... ' + dirname
+
+    if dirname in dirList:
+      print 'using rules for' + dirname
+      prompt = raw_input('press any key to continue')
+    
+    for filename in filenames:
+        if not inFiles(os.path.abspath(os.path.join(dirname, filename))) and \
+        not ignoredFiles(filename) and \
+        not ignoredDirectories(dirname):
+
+          # prompt = raw_input('I\'m about to drop that table like it\'s hot')
+
+          # fullpath = os.path.dirname(os.path.realpath(filename))
+          fileobject = FileMeta(os.path.abspath(os.path.join(dirname, \
+                                filename)), filename)
+
+          newFiles += 1   # number of new files added to dict
+          # extensions[os.path.splitext(filename)[1].lower()] += 1
+          files[fileobject.fullPathFileName] = fileobject.fileMetaList()
+
+          if not fake: 
+            dbStore(fileobject.fullPathFileName, fileobject.fileMetaList())
+          if verbose: 
+            print '+   added...', fileobject.fullPathFileName
+
+        # file already listed in files dict
+        elif inFiles(os.path.abspath(os.path.join(dirname, filename))):
+            # update file meta data and verify file still exists
+            if verbose: print '\n--- file already found ---',
+            updateFiles(os.path.abspath(os.path.join(dirname, filename)))
 
 
+# ---------------------------------------------------------------------------- #
+#   function - ignoredFiles
+#   checks if file is in ignore list
+#
+#   function - ignoredDirectories
+#   checks if directory is in ignore list
+# ---------------------------------------------------------------------------- #
+def ignoredFiles(filename = None):
+  ignore = [ '.DS_Store', '*.pyc', '__init__.py', '*.p' ]
+  
+  for ignored_file in ignore:
+    if re.search(fnmatch.translate(ignored_file), filename):
+      return True
+
+  return False
+
+def ignoredDirectories(directory = None):
+  ignore = [ '.git/*', 'env/*' ]
+
+  for ignored_directory in ignore:
+    if re.search(fnmatch.translate(ignored_directory), directory):
+      return True
+
+  return False
 
 # ---------------------------------------------------------------------------- #
 #   function - inFiles
@@ -195,18 +220,16 @@ def inFiles(fullPathFileName = None):
          if fullPathFileName in files: return True
          else: return False
 
-
-
 # ---------------------------------------------------------------------------- #
 #   function - verifyFiles
 #   checks dict for existence of filename with path
 # ---------------------------------------------------------------------------- #
 def verifyFiles():
     global delFiles, vebose
-    for exfile in files.keys():
-        if not os.path.exists(exfile):
+    for existingFile in files.keys():
+        if not os.path.exists(existingFile):
             if verbose: print '- removed:', exfile
-            del files[exfile]
+            del files[existingFile]
             delFiles += 1
 
 # ---------------------------------------------------------------------------- #
@@ -224,9 +247,17 @@ def dbStore(fullpath, fileInfo):
 #   verify prev collected file meta data and update accordingly
 # ---------------------------------------------------------------------------- #
 
-# [  0	 ,	    1	  ,	    2	 ,	   3	 ,	 4	 ,	 5	  ,		  6 	 ]
+# [  0	 ,	    1	    ,	    2	   ,     3	   ,	 4	 ,	  5	  ,		    6 	   ]
 # ['name', 'extension', 'created', 'modified', 'size', 'owner', 'permissions']
 
+"""
+there has to be a MORE pythonic way to do this! there is no need to check each
+item in the file list explicitly. use len(fileinfo) and do this more 
+efficiently! that way you can continue to add members to the filemeta class 
+and not have to continue altering this damn function each time
+"""
+
+>>>>>>> 9a612fe4acb824d6ce285e8a69d678f897dea5d8
 def updateFiles(fullPathFileName = None):
 	global updFiles
 	updated = False
