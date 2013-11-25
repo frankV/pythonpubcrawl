@@ -39,8 +39,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-Schema/dir-crawler_schema.mwb
-Schema/dir-crawler_schema.mwb.bak
-pubcrawl_schema.mwb
-pubcrawl_schema.mwb.bak
-samos_variable_description.docx
