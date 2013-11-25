@@ -5,12 +5,11 @@
 
 """ pubcrawl.py -- main  """
 
-import argparse, os, time, sys, collections, getopt
-from stat import *
+import os, argparse, collections, yaml, re, fnmatch
 import cPickle as pickle
+
 from dbtask import *
 from filemeta import *
-import yaml
 
 """ argparse options
 
@@ -48,14 +47,14 @@ parser.add_argument('settings', nargs='?',
 
 args = parser.parse_args()          # parse arguments
 
-if args.verbose: verbose = True     # verbose output; crawler prints out process
-else: verbose = False               # verification messages and user feedback
+if args.verbose: verbose = True     # verbose output
+else: verbose = False
 
 if args.dump: dump = True           # dump; will override any existing
 else: dump = False                  # dictionaries and drop existing tables
 
 if args.fake: fake = True           # fake; crawl only, will not update 
-else: fake = False                  # dictionaries and drop existing tables
+else: fake = False
 
 newFiles = 0                        # GLOBAL "newFiles"; new files
 delFiles = 0                        # GLOBAL "delFiles"; not found
@@ -96,9 +95,6 @@ else:
 def crawlDir():
   # globals
   global newFiles, files, extensions, verbose, dump, fake
-
-  # list of file types to ignore
-  ignore = [ '.DS_Store' ]
 
   # directory to crawl = directory passed in by command line
   directory = args.directory
@@ -241,7 +237,6 @@ def dbStore(fullpath, fileInfo):
     #if not fake:
         push_to_db(fullpath, fileInfo)
 
-
 # ---------------------------------------------------------------------------- #
 #   function - updateFiles
 #   verify prev collected file meta data and update accordingly
@@ -257,7 +252,6 @@ efficiently! that way you can continue to add members to the filemeta class
 and not have to continue altering this damn function each time
 """
 
->>>>>>> 9a612fe4acb824d6ce285e8a69d678f897dea5d8
 def updateFiles(fullPathFileName = None):
 	global updFiles
 	updated = False
@@ -394,9 +388,9 @@ if not fake: verifyFiles()
 
 if verbose:
     print '\n'
-    print 'Added:  ', newFiles, 'new files to list.\n'
-    print 'Removed:', delFiles, 'files from list.\n'
-    print 'Updated:', updFiles, 'of', print_dictTotal(files), 'files in list.\n'
+    print 'Added:  ', newFiles, 'new file(s) to list.\n'
+    print 'Removed:', delFiles, 'file(s) from list.\n'
+    print 'Updated:', updFiles, 'of', print_dictTotal(files), 'file(s) in list.\n'
     print 'Total:  ', print_dictTotal(files), 'entries in list.\n'
 
 pickleDump()

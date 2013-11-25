@@ -5,6 +5,7 @@
 
 """ dbtask.py -- database interface  """
 
+import os
 from sqlalchemy import *
 from sqlalchemy import schema, types
 from sqlalchemy.ext.declarative import declarative_base  
@@ -30,8 +31,6 @@ file_paths = Table('file_paths', meta,
     mysql_engine='InnoDB',
 )
 file_paths.drop(engine, checkfirst = True)
-
-
 file_paths.create(engine, checkfirst = True)
 
 def push_to_db(fullpath, fileInfo):

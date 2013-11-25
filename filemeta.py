@@ -54,9 +54,8 @@ class FileMeta(object):
 		return [self.filename, self.extension, self.created, self.modified,\
 		        self.size, self.owner, self.permissions, self.md5]
 
-	 # 	  self.ext = os.path.splitext(filename)[1].lower()
-	 # 	  self.created = time.ctime(os.path.getctime(fullPathFileName))
-	 #    self.modified = time.ctime(os.path.getmtime(fullPathFileName))
-	 #    self.size = st[ST_SIZE]
-	 #    self.owner = st[ST_UID]
-	 #    self.permissions = oct(st[ST_MODE])[-3:]
+
+
+
+
+

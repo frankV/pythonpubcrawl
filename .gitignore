@@ -1,12 +1,10 @@
 *.py[cod]
 
-#pickled files
-.p
-
 # DON'T COMMIT YOUR FREAKING Virtualenv
 env/*
 
-perl/*
+#pickled files
+*.p
 
 # C extensions
 *.so
@@ -41,6 +39,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-subset*
-samos*
-*mwb*
